@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PI Analytics Platform — Swyft</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ── Reset & Base ────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; color: #1a202c; }
+
+/* ── App Header / Tab Nav ────────────────────────── */
+.app-header {
+  background: #07111f;
+  color: white;
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid #1a2540;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  border-right: 1px solid #1a2540;
+  flex-shrink: 0;
+}
+.app-logo {
+  width: 34px; height: 34px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  display: block;
+}
+.app-brand-text { line-height: 1.25; }
+.app-brand-text h1 { font-size: 13.5px; font-weight: 700; letter-spacing: -.2px; }
+.app-brand-text .sub { font-size: 9.5px; color: #475569; }
+.tab-nav { display: flex; align-items: stretch; flex: 1; padding: 0 6px; overflow-x: auto; }
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 20px; border: none;
+  background: transparent; color: #64748b;
+  font-size: 12.5px; font-weight: 500; cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap; font-family: inherit; min-height: 48px;
+}
+.tab-btn:hover { color: #94a3b8; }
+.tab-btn.active { color: white; }
+.tab-btn.active.t1 { border-bottom-color: #2D6BE4; }
+.tab-btn.active.t2 { border-bottom-color: #0D9488; }
+.tab-btn.active.t3 { border-bottom-color: #7C3AED; }
+.tab-btn.active.t4 { border-bottom-color: #D97706; }
+.tab-icon { font-size: 14px; }
+.app-meta { display: flex; align-items: center; gap: 6px; padding: 0 16px; color: #334155; font-size: 10.5px; border-left: 1px solid #1a2540; flex-shrink: 0; }
+.app-meta .chip { background: #1a2540; border-radius: 4px; padding: 2px 7px; font-size: 10px; color: #64748b; }
+
+/* ── Panels ──────────────────────────────────────── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Dash Sub-header ──────────────────────────────── */
+.dash-header {
+  background: #0f1f3d; color: white;
+  padding: 10px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.dash-header h2 { font-size: 15px; font-weight: 700; }
+.dash-header .sub { font-size: 10.5px; color: #90a8d4; margin-top: 2px; }
+.badge { color: white; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+
+/* ── Filter Bars ─────────────────────────────────── */
+.filter-bar { padding: 9px 24px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.filter-bar label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+.filter-bar select,
+.filter-bar input[type=date],
+.filter-bar input[type=month],
+.filter-bar input[type=number] {
+  border-radius: 5px; padding: 5px 8px;
+  font-size: 12px; cursor: pointer; outline: none; font-family: inherit;
+}
+.filter-sep { width: 1px; height: 22px; margin: 0 2px; }
+.filter-reset { background: transparent; border-radius: 5px; padding: 5px 10px; font-size: 11px; cursor: pointer; font-family: inherit; }
+.active-filters { font-size: 11px; margin-left: auto; }
+
+/* D1 – Blue */
+.p1 .filter-bar { background: #1e3a6e; }
+.p1 .filter-bar label { color: #90a8d4; }
+.p1 .filter-bar select, .p1 .filter-bar input { background: #0f2550; color: white; border: 1px solid #2d4a7a; }
+.p1 .filter-bar select:hover, .p1 .filter-bar input:hover { border-color: #2D6BE4; }
+.p1 .filter-bar select option { background: #0f1f3d; }
+.p1 .filter-sep { background: #2d4a7a; }
+.p1 .filter-reset { color: #90a8d4; border: 1px solid #2d4a7a; }
+.p1 .filter-reset:hover { border-color: #2D6BE4; color: white; }
+.p1 .active-filters { color: #60a5fa; }
+.p1 .badge { background: #2D6BE4; }
+.p1 .insight { background: #eff6ff; border-left: 4px solid #2D6BE4; color: #1e40af; }
+
+/* D2 – Teal */
+.p2 .filter-bar { background: #0a3330; }
+.p2 .filter-bar label { color: #5eead4; }
+.p2 .filter-bar select, .p2 .filter-bar input { background: #052e2b; color: white; border: 1px solid #134e4a; }
+.p2 .filter-bar select:hover, .p2 .filter-bar input:hover { border-color: #0D9488; }
+.p2 .filter-bar select option { background: #0a3330; }
+.p2 .filter-sep { background: #134e4a; }
+.p2 .filter-reset { color: #5eead4; border: 1px solid #134e4a; }
+.p2 .filter-reset:hover { border-color: #0D9488; color: white; }
+.p2 .active-filters { color: #34d399; }
+.p2 .badge { background: #0D9488; }
+.p2 .insight { background: #e6fffa; border-left: 4px solid #0D9488; color: #065f46; }
+
+/* D3 – Purple */
+.p3 .filter-bar { background: #2e1065; }
+.p3 .filter-bar label { color: #c4b5fd; }
+.p3 .filter-bar select, .p3 .filter-bar input { background: #1e0a4e; color: white; border: 1px solid #4c1d95; }
+.p3 .filter-bar select:hover, .p3 .filter-bar input:hover { border-color: #7C3AED; }
+.p3 .filter-bar select option { background: #2e1065; }
+.p3 .filter-sep { background: #4c1d95; }
+.p3 .filter-reset { color: #c4b5fd; border: 1px solid #4c1d95; }
+.p3 .filter-reset:hover { border-color: #7C3AED; color: white; }
+.p3 .active-filters { color: #a78bfa; }
+.p3 .badge { background: #7C3AED; }
+.p3 .insight { background: #f5f3ff; border-left: 4px solid #7C3AED; color: #4c1d95; }
+
+/* D4 – Amber */
+.p4 .filter-bar { background: #451a03; }
+.p4 .filter-bar label { color: #fcd34d; }
+.p4 .filter-bar select, .p4 .filter-bar input { background: #2d1200; color: white; border: 1px solid #78350f; }
+.p4 .filter-bar select:hover, .p4 .filter-bar input:hover { border-color: #D97706; }
+.p4 .filter-bar select option { background: #451a03; }
+.p4 .filter-sep { background: #78350f; }
+.p4 .filter-reset { color: #fcd34d; border: 1px solid #78350f; }
+.p4 .filter-reset:hover { border-color: #D97706; color: white; }
+.p4 .active-filters { color: #fbbf24; }
+.p4 .badge { background: #D97706; }
+.p4 .insight { background: #fffbeb; border-left: 4px solid #f5a623; color: #78350f; }
+
+/* ── Shared Components ───────────────────────────── */
+.kpis { display: grid; gap: 10px; padding: 12px 20px 0; }
+.kpi5 { grid-template-columns: repeat(5,1fr); }
+.kpi6 { grid-template-columns: repeat(6,1fr); }
+.kpi4 { grid-template-columns: repeat(4,1fr); }
+.kpi { background: white; border-radius: 8px; padding: 12px 14px; box-shadow: 0 1px 3px rgba(0,0,0,.07); border-top: 3px solid #e2e8f0; }
+.kpi.alert  { border-top-color: #e53e3e; }
+.kpi.good   { border-top-color: #38a169; }
+.kpi.warn   { border-top-color: #f5a623; }
+.kpi.blue   { border-top-color: #2D6BE4; }
+.kpi.teal   { border-top-color: #0D9488; }
+.kpi.green  { border-top-color: #38a169; }
+.kpi.amber  { border-top-color: #f5a623; }
+.kpi.red    { border-top-color: #e53e3e; }
+.kpi.purple { border-top-color: #7C3AED; }
+.kpi-val { font-size: 22px; font-weight: 800; color: #0f1f3d; line-height: 1; }
+.kpi-val.red   { color: #e53e3e; }
+.kpi-val.green { color: #38a169; }
+.kpi-val.amber { color: #d97706; }
+.kpi-label { font-size: 10px; color: #718096; margin-top: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: .4px; }
+.kpi-sub { font-size: 10px; color: #a0aec0; margin-top: 2px; }
+
+.charts { display: grid; gap: 10px; padding: 10px 20px 16px; }
+.chart-wide { grid-column: 1 / -1; }
+.cols2 { grid-template-columns: 1fr 1fr; }
+.cols21 { grid-template-columns: 2fr 1fr; }
+
+.card { background: white; border-radius: 8px; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+.card-title { font-size: 11px; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { background: #f7fafc; color: #4a5568; font-weight: 600; text-transform: uppercase; font-size: 10px; letter-spacing: .4px; padding: 7px 9px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+td { padding: 6px 9px; border-bottom: 1px solid #f0f4f8; color: #2d3748; }
+tr:hover td { background: #f7fafc; }
+
+.pill { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.pill-red    { background: #fff5f5; color: #c53030; }
+.pill-green  { background: #f0fff4; color: #276749; }
+.pill-amber  { background: #fffbeb; color: #b7791f; }
+.pill-teal   { background: #e6fffa; color: #065f46; }
+.pill-purple { background: #f5f3ff; color: #5b21b6; }
+.pill-gray   { background: #f7fafc; color: #718096; }
+
+.tag { display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+.tag-referral { background: #e6fffa; color: #0D9488; }
+.tag-digital  { background: #ebf4ff; color: #2D6BE4; }
+.tag-other    { background: #f7fafc; color: #718096; }
+.tag-unknown  { background: #fff5f5; color: #c53030; }
+
+.insight { padding: 9px 13px; border-radius: 0 6px 6px 0; font-size: 12px; margin: 8px 20px 2px; }
+.no-data { text-align: center; padding: 30px; color: #a0aec0; font-size: 13px; }
+.donut-wrap { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.legend-item { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 11.5px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     APP HEADER + TAB NAVIGATION
+═══════════════════════════════════════════════ -->
+<div class="app-header">
+  <div class="app-brand">
+    <img src="data:image/jpeg;base64,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" class="app-logo" alt="Swyft" style="object-fit:cover;">
+    <div class="app-brand-text">
+      <h1>PI Analytics Platform</h1>
+      <div class="sub">Swyft · Powered by Sigma</div>
+    </div>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn t1 active" onclick="showTab(1)">
+      <span class="tab-icon">📞</span> Intake Leak Monitor
+    </button>
+    <button class="tab-btn t2" onclick="showTab(2)">
+      <span class="tab-icon">📊</span> Full-Funnel ROI
+    </button>
+    <button class="tab-btn t3" onclick="showTab(3)">
+      <span class="tab-icon">🏷</span> Source Quality
+    </button>
+    <button class="tab-btn t4" onclick="showTab(4)">
+      <span class="tab-icon">💰</span> Case Costs
+    </button>
+  </nav>
+
+  <div class="app-meta">
+    <span class="chip">Hackathon 2026</span>
+    <span style="color:#475569">Data: Dec 2025 – Apr 2026</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════
+     PANEL 1 — INTAKE LEAK MONITOR
+═══════════════════════════════════════════════ -->
+<div id="panel-1" class="panel p1 active">
+
+  <div class="dash-header">
+    <div>
+      <h2>📞 Intake Leak Monitor</h2>
+      <div class="sub">CallRail → Lead Docket  ·  ETL: Call-to-Lead Matcher</div>
+    </div>
+    <span class="badge">Dashboard 1 / 4</span>
+  </div>
+
+  <div class="filter-bar">
+    <label>Date From</label>
+    <input type="date" id="d1-dateFrom" value="2025-12-07">
+    <label>Date To</label>
+    <input type="date" id="d1-dateTo" value="2026-04-12">
+    <div class="filter-sep"></div>
+    <label>Source</label>
+    <select id="d1-sourceFilter">
+      <option value="all">All Sources</option>
+      <option value="Google My Business">Google My Business</option>
+      <option value="Organic Search">Organic Search</option>
+      <option value="Local Service Ads">Local Service Ads</option>
+      <option value="Direct">Direct</option>
+      <option value="Referral - Directories">Referral - Directories</option>
+      <option value="Billboards">Billboards</option>
+      <option value="Social Media">Social Media</option>
+    </select>
+    <div class="filter-sep"></div>
+    <label>Call Result</label>
+    <select id="d1-resultFilter">
+      <option value="all">All Calls</option>
+      <option value="answered">Answered Only</option>
+      <option value="missed">Missed Only</option>
+      <option value="unmatched">Unmatched Only</option>
+      <option value="matched">Matched Only</option>
+    </select>
+    <div class="filter-sep"></div>
+    <label>New Caller</label>
+    <select id="d1-newCallerFilter">
+      <option value="all">All Callers</option>
+      <option value="new">New Callers Only</option>
+      <option value="existing">Existing Only</option>
+    </select>
+    <button class="filter-reset" onclick="dashboards.d1.reset()">↺ Reset</button>
+    <span class="active-filters" id="d1-activeFilters"></span>
+  </div>
+
+  <div class="kpis kpi5">
+    <div class="kpi blue"><div class="kpi-val" id="d1-kTotalCalls">—</div><div class="kpi-label">Total Inbound Calls</div><div class="kpi-sub" id="d1-kDateRange">—</div></div>
+    <div class="kpi good"><div class="kpi-val green" id="d1-kMatched">—</div><div class="kpi-label">Matched to CRM Lead</div><div class="kpi-sub" id="d1-kMatchRate">—</div></div>
+    <div class="kpi alert"><div class="kpi-val red" id="d1-kUnmatched">—</div><div class="kpi-label">Unmatched Calls</div><div class="kpi-sub" id="d1-kLeakPct">—</div></div>
+    <div class="kpi warn"><div class="kpi-val amber" id="d1-kMissed">—</div><div class="kpi-label">Missed Calls</div><div class="kpi-sub" id="d1-kMissedPct">—</div></div>
+    <div class="kpi"><div class="kpi-val" id="d1-kAnswerRate">—</div><div class="kpi-label">Answer Rate</div><div class="kpi-sub">Of all inbound calls</div></div>
+  </div>
+
+  <div class="insight" id="d1-insightBox">Loading...</div>
+
+  <div class="charts cols2">
+    <div class="card chart-wide">
+      <div class="card-title">Weekly Call Volume — Matched vs Unmatched</div>
+      <canvas id="d1-weeklyChart" height="85"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Matched vs Unmatched by Source</div>
+      <canvas id="d1-sourceChart" height="200"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Source Detail</div>
+      <table>
+        <thead><tr><th>Source</th><th>Calls</th><th>Matched</th><th>Match %</th><th>Missed</th></tr></thead>
+        <tbody id="d1-sourceTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- /panel-1 -->
+
+
+<!-- ═══════════════════════════════════════════════
+     PANEL 2 — FULL-FUNNEL MARKETING ROI
+═══════════════════════════════════════════════ -->
+<div id="panel-2" class="panel p2">
+
+  <div class="dash-header">
+    <div>
+      <h2>📊 Full-Funnel Marketing ROI</h2>
+      <div class="sub">Google Ads + Lead Docket + Filevine  ·  ETL: Full-Funnel Attribution Spine</div>
+    </div>
+    <span class="badge">Dashboard 2 / 4</span>
+  </div>
+
+  <div class="filter-bar">
+    <label>Month From</label>
+    <input type="month" id="d2-monthFrom" value="2024-01">
+    <label>Month To</label>
+    <input type="month" id="d2-monthTo" value="2026-04">
+    <div class="filter-sep"></div>
+    <label>Source Category</label>
+    <select id="d2-catFilter">
+      <option value="all">All Categories</option>
+      <option value="Digital">Digital Only</option>
+      <option value="Referral">Referral Only</option>
+      <option value="Other">Other Only</option>
+    </select>
+    <div class="filter-sep"></div>
+    <label>Lead Status</label>
+    <select id="d2-statusFilter">
+      <option value="all">All Leads</option>
+      <option value="signed">Signed Up Only</option>
+      <option value="rejected">Rejected / Referred</option>
+    </select>
+    <div class="filter-sep"></div>
+    <label>Source</label>
+    <select id="d2-srcFilter">
+      <option value="all">All Sources</option>
+      <option value="Organic Search">Organic Search</option>
+      <option value="Google LSA">Google LSA</option>
+      <option value="Referral: Ext. Attorney">Ext. Attorney Referral</option>
+      <option value="Referral: Past Client">Past Client Referral</option>
+      <option value="Referral: Friend/Family">Friend/Family</option>
+      <option value="Referral: Knows Attorney">Knows Attorney</option>
+      <option value="Billboard">Billboard</option>
+    </select>
+    <button class="filter-reset" onclick="dashboards.d2.reset()">↺ Reset</button>
+    <span class="active-filters" id="d2-activeFilters"></span>
+  </div>
+
+  <div class="kpis kpi6">
+    <div class="kpi blue"><div class="kpi-val" id="d2-kLeads">—</div><div class="kpi-label">Total Leads</div><div class="kpi-sub" id="d2-kPeriod">—</div></div>
+    <div class="kpi teal"><div class="kpi-val" id="d2-kSigned">—</div><div class="kpi-label">Signed Cases</div><div class="kpi-sub" id="d2-kSignupRate">—</div></div>
+    <div class="kpi green"><div class="kpi-val">22.7%</div><div class="kpi-label">Best Signup Rate</div><div class="kpi-sub">Ext. Attorney Referral</div></div>
+    <div class="kpi amber"><div class="kpi-val">$36,503</div><div class="kpi-label">Google Ads Spend</div><div class="kpi-sub">Oct 2025 – Apr 2026</div></div>
+    <div class="kpi red"><div class="kpi-val">$294</div><div class="kpi-label">Google Cost/Conv</div><div class="kpi-sub">Google's metric</div></div>
+    <div class="kpi"><div class="kpi-val">~$376</div><div class="kpi-label">Est. Cost/Signed</div><div class="kpi-sub">True business cost</div></div>
+  </div>
+
+  <div class="insight" id="d2-insightBox">Loading...</div>
+
+  <div class="charts cols2">
+    <div class="card chart-wide">
+      <div class="card-title">Monthly Leads by Source Category</div>
+      <canvas id="d2-monthlyChart" height="85"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Signup Rate by Source</div>
+      <canvas id="d2-rateChart" height="200"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Source Performance</div>
+      <table>
+        <thead><tr><th>Source</th><th>Category</th><th>Leads</th><th>Signed</th><th>Signup Rate</th></tr></thead>
+        <tbody id="d2-srcTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- /panel-2 -->
+
+
+<!-- ═══════════════════════════════════════════════
+     PANEL 3 — MARKETING SOURCE QUALITY
+═══════════════════════════════════════════════ -->
+<div id="panel-3" class="panel p3">
+
+  <div class="dash-header">
+    <div>
+      <h2>🏷 Marketing Source Quality</h2>
+      <div class="sub">Lead Docket  ·  ETL: Marketing Source Normalization  ·  All-time lead history</div>
+    </div>
+    <span class="badge">Dashboard 3 / 4</span>
+  </div>
+
+  <div class="filter-bar">
+    <label>Category</label>
+    <select id="d3-catFilter">
+      <option value="all">All Categories</option>
+      <option value="Digital">Digital</option>
+      <option value="Referral">Referral</option>
+      <option value="Other">Other</option>
+      <option value="Unknown">Unknown</option>
+    </select>
+    <div class="filter-sep"></div>
+    <label>Min Volume</label>
+    <input type="number" id="d3-minVolume" value="0" min="0" max="5000" step="50" style="width:70px;">
+    <div class="filter-sep"></div>
+    <label>Min Signup Rate %</label>
+    <input type="number" id="d3-minRate" value="0" min="0" max="30" step="1" style="width:60px;">
+    <div class="filter-sep"></div>
+    <label>Sort By</label>
+    <select id="d3-sortBy">
+      <option value="count">Volume</option>
+      <option value="rate">Signup Rate</option>
+      <option value="signed">Total Signed</option>
+    </select>
+    <button class="filter-reset" onclick="dashboards.d3.reset()">↺ Reset</button>
+    <span class="active-filters" id="d3-activeFilters"></span>
+  </div>
+
+  <div class="kpis kpi4">
+    <div class="kpi green"><div class="kpi-val" id="d3-kCoverage">—</div><div class="kpi-label">Attribution Coverage</div><div class="kpi-sub">Leads with known source</div></div>
+    <div class="kpi purple"><div class="kpi-val" id="d3-kVisible">—</div><div class="kpi-label">Sources Visible</div><div class="kpi-sub" id="d3-kVisibleSub">After filters</div></div>
+    <div class="kpi amber"><div class="kpi-val" id="d3-kAvgRate">—</div><div class="kpi-label">Avg Signup Rate</div><div class="kpi-sub">Filtered sources</div></div>
+    <div class="kpi blue"><div class="kpi-val" id="d3-kTotalFiltered">—</div><div class="kpi-label">Total Leads</div><div class="kpi-sub">In filtered view</div></div>
+  </div>
+
+  <div class="insight" id="d3-insightBox">Loading...</div>
+
+  <div class="charts cols2">
+    <div class="card">
+      <div class="card-title">Raw Source Values (Before Normalization)</div>
+      <canvas id="d3-rawChart" height="270"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Clean Source Categories (After Normalization)</div>
+      <canvas id="d3-cleanChart" height="270"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Signup Rate by Clean Source</div>
+      <canvas id="d3-rateChart" height="200"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Clean Source Detail</div>
+      <table>
+        <thead><tr><th>Clean Source</th><th>Category</th><th>Leads</th><th>Signed</th><th>Signup Rate</th></tr></thead>
+        <tbody id="d3-cleanTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- /panel-3 -->
+
+
+<!-- ═══════════════════════════════════════════════
+     PANEL 4 — CASE COST ANALYSIS
+═══════════════════════════════════════════════ -->
+<div id="panel-4" class="panel p4">
+
+  <div class="dash-header">
+    <div>
+      <h2>💰 Case Cost Analysis</h2>
+      <div class="sub">QuickBooks General Ledger  ·  ETL: GL Account Classifier  ·  2022–2026</div>
+    </div>
+    <span class="badge">Dashboard 4 / 4</span>
+  </div>
+
+  <div class="filter-bar">
+    <label>Year From</label>
+    <select id="d4-yearFrom">
+      <option value="2016">2016</option><option value="2018">2018</option>
+      <option value="2020">2020</option><option value="2022" selected>2022</option>
+      <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option>
+    </select>
+    <label>Year To</label>
+    <select id="d4-yearTo">
+      <option value="2022">2022</option><option value="2023">2023</option>
+      <option value="2024">2024</option><option value="2025">2025</option>
+      <option value="2026" selected>2026</option>
+    </select>
+    <div class="filter-sep"></div>
+    <label>Category</label>
+    <select id="d4-catFilter">
+      <option value="all">All Categories</option>
+      <option value="Compensation">Compensation</option>
+      <option value="Advertising">Advertising</option>
+      <option value="Medical Records">Medical Records</option>
+      <option value="Rent">Rent</option>
+      <option value="Technology">Technology</option>
+      <option value="Court Reporter">Court Reporter</option>
+      <option value="Filing Fees">Filing Fees</option>
+      <option value="Other">Other</option>
+    </select>
+    <div class="filter-sep"></div>
+    <label>View</label>
+    <select id="d4-viewMode">
+      <option value="stacked">Stacked (All Cats)</option>
+      <option value="line">Line (Trend)</option>
+      <option value="category">Single Category</option>
+    </select>
+    <div class="filter-sep"></div>
+    <label>Exclude Comp</label>
+    <select id="d4-excludeComp">
+      <option value="no">Include Compensation</option>
+      <option value="yes">Exclude Compensation</option>
+    </select>
+    <button class="filter-reset" onclick="dashboards.d4.reset()">↺ Reset</button>
+    <span class="active-filters" id="d4-activeFilters"></span>
+  </div>
+
+  <div class="kpis kpi5">
+    <div class="kpi amber"><div class="kpi-val" id="d4-kTotal">—</div><div class="kpi-label">Total Expenses</div><div class="kpi-sub" id="d4-kTotalSub">—</div></div>
+    <div class="kpi blue"><div class="kpi-val" id="d4-kComp">—</div><div class="kpi-label">Compensation</div><div class="kpi-sub" id="d4-kCompPct">—</div></div>
+    <div class="kpi red"><div class="kpi-val" id="d4-kAdv">—</div><div class="kpi-label">Advertising</div><div class="kpi-sub" id="d4-kAdvPct">—</div></div>
+    <div class="kpi teal"><div class="kpi-val" id="d4-kMed">—</div><div class="kpi-label">Medical Records</div><div class="kpi-sub" id="d4-kMedPct">—</div></div>
+    <div class="kpi purple"><div class="kpi-val" id="d4-kAvgMonth">—</div><div class="kpi-label">Avg Monthly Expense</div><div class="kpi-sub">Filtered period</div></div>
+  </div>
+
+  <div class="insight" id="d4-insightBox">Loading...</div>
+
+  <div class="charts cols21">
+    <div class="card chart-wide">
+      <div class="card-title" id="d4-mainChartTitle">Monthly Expenses by Category</div>
+      <canvas id="d4-mainChart" height="95"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Expense Mix (Filtered Period)</div>
+      <div class="donut-wrap">
+        <div style="position:relative;width:140px;height:140px;flex-shrink:0;">
+          <canvas id="d4-donutChart" width="140" height="140"></canvas>
+        </div>
+        <div id="d4-donutLegend" style="flex:1;"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Top Expense Accounts</div>
+      <table>
+        <thead><tr><th>Account</th><th>Total</th><th>Share</th></tr></thead>
+        <tbody id="d4-acctTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- /panel-4 -->
+
+
+<!-- ═══════════════════════════════════════════════
+     TAB SWITCHING LOGIC
+═══════════════════════════════════════════════ -->
+<script>
+const tabInited = { 1: false, 2: false, 3: false, 4: false };
+
+function showTab(num) {
+  // Update panels
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + num).classList.add('active');
+
+  // Update tab buttons
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn')[num - 1].classList.add('active');
+
+  // Lazy init on first visit
+  if (!tabInited[num]) {
+    tabInited[num] = true;
+    // Small delay to let display:block take effect before Chart.js measures canvas
+    requestAnimationFrame(() => dashboards['d' + num].render());
+  }
+}
+
+// Init tab 1 after full DOM ready
+window.addEventListener('load', () => {
+  tabInited[1] = true;
+  dashboards.d1.render();
+});
+</script>
+
+
+<!-- ═══════════════════════════════════════════════
+     DASHBOARD 1 — JS
+═══════════════════════════════════════════════ -->
+<script>
+const dashboards = {};
+dashboards.d1 = (function() {
+  const $ = id => document.getElementById('d1-' + id);
+
+  const allSourceData = [
+    {src:"Google My Business",total:2484,matched:301,unmatched:2183,missed:25,match_rate:12.1},
+    {src:"Organic Search",total:244,matched:50,unmatched:194,missed:1,match_rate:20.5},
+    {src:"Local Service Ads",total:233,matched:55,unmatched:178,missed:0,match_rate:23.6},
+    {src:"Direct",total:216,matched:37,unmatched:179,missed:5,match_rate:17.1},
+    {src:"Referral - Directories",total:139,matched:1,unmatched:138,missed:0,match_rate:0.7},
+    {src:"Main Office Number",total:21,matched:0,unmatched:21,missed:3,match_rate:0.0},
+    {src:"Billboards",total:18,matched:0,unmatched:18,missed:1,match_rate:0.0},
+    {src:"Social Media",total:14,matched:0,unmatched:14,missed:0,match_rate:0.0},
+  ];
+
+  const allWeeklyData = [
+    {week:"Dec 22",date:"2025-12-22",total:82,matched:4,unmatched:78,missed:0,match_rate:4.9},
+    {week:"Dec 29",date:"2025-12-29",total:79,matched:4,unmatched:75,missed:2,match_rate:5.1},
+    {week:"Jan 5",date:"2026-01-05",total:204,matched:6,unmatched:198,missed:2,match_rate:2.9},
+    {week:"Jan 12",date:"2026-01-12",total:150,matched:2,unmatched:148,missed:2,match_rate:1.3},
+    {week:"Jan 19",date:"2026-01-19",total:229,matched:7,unmatched:222,missed:3,match_rate:3.1},
+    {week:"Jan 26",date:"2026-01-26",total:182,matched:26,unmatched:156,missed:1,match_rate:14.3},
+    {week:"Feb 2",date:"2026-02-02",total:207,matched:14,unmatched:193,missed:0,match_rate:6.8},
+    {week:"Feb 9",date:"2026-02-09",total:216,matched:30,unmatched:186,missed:0,match_rate:13.9},
+    {week:"Feb 16",date:"2026-02-16",total:251,matched:30,unmatched:221,missed:3,match_rate:12.0},
+    {week:"Feb 23",date:"2026-02-23",total:315,matched:58,unmatched:257,missed:5,match_rate:18.4},
+    {week:"Mar 2",date:"2026-03-02",total:255,matched:52,unmatched:203,missed:5,match_rate:20.4},
+    {week:"Mar 9",date:"2026-03-09",total:276,matched:67,unmatched:209,missed:1,match_rate:24.3},
+    {week:"Mar 16",date:"2026-03-16",total:268,matched:67,unmatched:201,missed:3,match_rate:25.0},
+    {week:"Mar 23",date:"2026-03-23",total:198,matched:36,unmatched:162,missed:2,match_rate:18.2},
+    {week:"Mar 30",date:"2026-03-30",total:164,matched:5,unmatched:159,missed:2,match_rate:3.0},
+    {week:"Apr 6",date:"2026-04-06",total:30,matched:5,unmatched:25,missed:0,match_rate:16.7},
+  ];
+
+  let weeklyChart, sourceChart;
+
+  function render() {
+    const from = $('dateFrom').value;
+    const to = $('dateTo').value;
+    const src = $('sourceFilter').value;
+    const result = $('resultFilter').value;
+    const caller = $('newCallerFilter').value;
+
+    const weekly = allWeeklyData.filter(d => d.date >= from && d.date <= to);
+    let sources = src === 'all' ? allSourceData : allSourceData.filter(d => d.src === src);
+
+    const totalCalls = weekly.reduce((a,d) => a+d.total, 0);
+    const matched    = weekly.reduce((a,d) => a+d.matched, 0);
+    const unmatched  = weekly.reduce((a,d) => a+d.unmatched, 0);
+    const missed     = weekly.reduce((a,d) => a+d.missed, 0);
+    const matchRate  = totalCalls > 0 ? (matched/totalCalls*100).toFixed(1) : 0;
+    const answerRate = totalCalls > 0 ? ((totalCalls-missed)/totalCalls*100).toFixed(1) : 0;
+
+    let filteredSources = sources;
+    if (result === 'matched')   filteredSources = sources.map(d => ({...d, total: d.matched}));
+    else if (result === 'unmatched') filteredSources = sources.map(d => ({...d, total: d.unmatched, matched: 0}));
+    else if (result === 'missed')    filteredSources = sources.map(d => ({...d, total: d.missed, matched: 0, unmatched: d.missed}));
+
+    $('kTotalCalls').textContent = totalCalls.toLocaleString();
+    $('kMatched').textContent    = matched.toLocaleString();
+    $('kMatchRate').textContent  = matchRate + '% match rate';
+    $('kUnmatched').textContent  = unmatched.toLocaleString();
+    $('kLeakPct').textContent    = totalCalls > 0 ? (100-matchRate) + '% never create a record' : '—';
+    $('kMissed').textContent     = missed;
+    $('kMissedPct').textContent  = totalCalls > 0 ? (missed/totalCalls*100).toFixed(1) + '% miss rate' : '—';
+    $('kAnswerRate').textContent = answerRate + '%';
+    $('kDateRange').textContent  = from + ' – ' + to;
+
+    const estOpp = Math.round(unmatched * 0.08);
+    $('insightBox').innerHTML = `<strong>⚠ Intake leak detected:</strong> ${unmatched.toLocaleString()} answered calls have no Lead Docket record in the selected period. At the firm's ~8% signup rate, this represents an estimated <strong>~${estOpp} missed case opportunities</strong>.`;
+
+    const activeArr = [];
+    if (src !== 'all') activeArr.push('Source: ' + src);
+    if (result !== 'all') activeArr.push('Result: ' + result);
+    if (caller !== 'all') activeArr.push('Caller: ' + caller);
+    $('activeFilters').textContent = activeArr.length ? 'Filters: ' + activeArr.join(' · ') : '';
+
+    if (weeklyChart) weeklyChart.destroy();
+    weeklyChart = new Chart(document.getElementById('d1-weeklyChart'), {
+      type: 'bar',
+      data: {
+        labels: weekly.map(d => d.week),
+        datasets: [
+          { label:'Matched', data:weekly.map(d=>d.matched), backgroundColor:'#38a169', stack:'calls' },
+          { label:'Unmatched', data:weekly.map(d=>d.unmatched), backgroundColor:'#fed7d7', stack:'calls' },
+          { label:'Match Rate %', data:weekly.map(d=>d.match_rate), type:'line', yAxisID:'y2',
+            borderColor:'#2D6BE4', backgroundColor:'transparent', pointBackgroundColor:'#2D6BE4',
+            pointRadius:3, borderWidth:2, tension:0.3 }
+        ]
+      },
+      options: {
+        responsive:true, interaction:{mode:'index'},
+        plugins:{ legend:{position:'top',labels:{font:{size:10},boxWidth:10}} },
+        scales:{
+          x:{grid:{display:false},ticks:{font:{size:10}}},
+          y:{stacked:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10}}},
+          y2:{position:'right',grid:{display:false},min:0,max:40,
+              ticks:{font:{size:10},callback:v=>v+'%'},
+              title:{display:true,text:'Match Rate %',font:{size:10}}}
+        }
+      }
+    });
+
+    if (sourceChart) sourceChart.destroy();
+    sourceChart = new Chart(document.getElementById('d1-sourceChart'), {
+      type:'bar',
+      data:{
+        labels:filteredSources.map(d=>d.src),
+        datasets:[
+          {label:'Matched',   data:filteredSources.map(d=>d.matched),   backgroundColor:'#38a169'},
+          {label:'Unmatched', data:filteredSources.map(d=>d.unmatched), backgroundColor:'#fc8181'},
+        ]
+      },
+      options:{
+        indexAxis:'y', responsive:true,
+        plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},
+        scales:{
+          x:{stacked:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10}}},
+          y:{stacked:true,grid:{display:false},ticks:{font:{size:10}}}
+        }
+      }
+    });
+
+    const tbody = $('sourceTable');
+    tbody.innerHTML = '';
+    if (!filteredSources.length) { tbody.innerHTML='<tr><td colspan="5" class="no-data">No data</td></tr>'; return; }
+    filteredSources.forEach(d => {
+      const pc = d.match_rate;
+      const pill = pc>=20?'pill-green':pc>=10?'pill-amber':'pill-red';
+      tbody.innerHTML += `<tr>
+        <td style="font-weight:500">${d.src}</td><td>${d.total.toLocaleString()}</td>
+        <td>${d.matched.toLocaleString()}</td>
+        <td><span class="pill ${pill}">${pc}%</span></td>
+        <td>${d.missed>0?`<span class="pill pill-red">${d.missed}</span>`:'<span style="color:#a0aec0">0</span>'}</td>
+      </tr>`;
+    });
+  }
+
+  function reset() {
+    $('dateFrom').value = '2025-12-07';
+    $('dateTo').value   = '2026-04-12';
+    $('sourceFilter').value    = 'all';
+    $('resultFilter').value    = 'all';
+    $('newCallerFilter').value = 'all';
+    render();
+  }
+
+  ['dateFrom','dateTo','sourceFilter','resultFilter','newCallerFilter'].forEach(id => {
+    document.getElementById('d1-'+id).addEventListener('change', render);
+  });
+
+  return { render, reset };
+})();
+</script>
+
+
+<!-- ═══════════════════════════════════════════════
+     DASHBOARD 2 — JS
+═══════════════════════════════════════════════ -->
+<script>
+dashboards.d2 = (function() {
+  const $ = id => document.getElementById('d2-' + id);
+
+  const allSources = [
+    {src:"Organic Search",      cat:"Digital",  leads:5669, signed:340, rate:6.0},
+    {src:"Google LSA",          cat:"Digital",  leads:1724, signed:96,  rate:5.6},
+    {src:"Other",               cat:"Other",    leads:1330, signed:44,  rate:3.3},
+    {src:"Referral: Ext. Attorney",cat:"Referral",leads:1026,signed:233,rate:22.7},
+    {src:"Referral: Past Client",  cat:"Referral",leads:705, signed:99, rate:14.0},
+    {src:"Referral: Friend/Family",cat:"Referral",leads:492, signed:65, rate:13.2},
+    {src:"Referral: Knows Attorney",cat:"Referral",leads:289,signed:40, rate:13.8},
+    {src:"Walk In",             cat:"Other",    leads:128,  signed:5,   rate:3.9},
+    {src:"Direct",              cat:"Other",    leads:119,  signed:1,   rate:0.8},
+    {src:"Billboard",           cat:"Other",    leads:66,   signed:8,   rate:12.1},
+    {src:"Social Media",        cat:"Other",    leads:31,   signed:1,   rate:3.2},
+    {src:"Unknown",             cat:"Unknown",  leads:73,   signed:0,   rate:0.0},
+  ];
+
+  const allMonthly = [
+    {m:"2024-01",digital:206,referral:58,other:11,signedD:4,signedR:4,signedO:0},
+    {m:"2024-02",digital:225,referral:40,other:21,signedD:3,signedR:2,signedO:1},
+    {m:"2024-03",digital:145,referral:63,other:7, signedD:12,signedR:10,signedO:0},
+    {m:"2024-04",digital:133,referral:41,other:11,signedD:7,signedR:3,signedO:2},
+    {m:"2024-05",digital:136,referral:39,other:18,signedD:6,signedR:3,signedO:0},
+    {m:"2024-06",digital:209,referral:36,other:13,signedD:12,signedR:7,signedO:0},
+    {m:"2024-07",digital:184,referral:31,other:19,signedD:7,signedR:4,signedO:1},
+    {m:"2024-08",digital:188,referral:36,other:20,signedD:16,signedR:9,signedO:1},
+    {m:"2024-09",digital:152,referral:37,other:13,signedD:7,signedR:6,signedO:0},
+    {m:"2024-10",digital:155,referral:33,other:16,signedD:9,signedR:3,signedO:1},
+    {m:"2024-11",digital:164,referral:27,other:24,signedD:15,signedR:6,signedO:7},
+    {m:"2024-12",digital:171,referral:29,other:12,signedD:6,signedR:7,signedO:0},
+    {m:"2025-01",digital:156,referral:40,other:12,signedD:15,signedR:10,signedO:0},
+    {m:"2025-02",digital:145,referral:93,other:23,signedD:11,signedR:18,signedO:2},
+    {m:"2025-03",digital:189,referral:103,other:28,signedD:23,signedR:22,signedO:1},
+    {m:"2025-04",digital:204,referral:60,other:17,signedD:15,signedR:13,signedO:2},
+    {m:"2025-05",digital:180,referral:55,other:17,signedD:19,signedR:14,signedO:0},
+    {m:"2025-06",digital:220,referral:36,other:10,signedD:24,signedR:3,signedO:1},
+    {m:"2025-07",digital:203,referral:35,other:17,signedD:14,signedR:14,signedO:1},
+    {m:"2025-08",digital:188,referral:46,other:9, signedD:18,signedR:15,signedO:0},
+    {m:"2025-09",digital:216,referral:50,other:14,signedD:15,signedR:15,signedO:3},
+    {m:"2025-10",digital:220,referral:72,other:19,signedD:19,signedR:28,signedO:7},
+    {m:"2025-11",digital:177,referral:88,other:42,signedD:23,signedR:28,signedO:4},
+    {m:"2025-12",digital:187,referral:65,other:20,signedD:20,signedR:22,signedO:2},
+    {m:"2026-01",digital:205,referral:87,other:13,signedD:11,signedR:35,signedO:3},
+    {m:"2026-02",digital:175,referral:81,other:25,signedD:9,signedR:24,signedO:0},
+    {m:"2026-03",digital:225,referral:97,other:29,signedD:24,signedR:37,signedO:0},
+    {m:"2026-04",digital:69, referral:44,other:7, signedD:10,signedR:14,signedO:3},
+  ];
+
+  let monthlyChart, rateChart;
+
+  function render() {
+    const from   = $('monthFrom').value;
+    const to     = $('monthTo').value;
+    const cat    = $('catFilter').value;
+    const status = $('statusFilter').value;
+    const src    = $('srcFilter').value;
+
+    const monthly = allMonthly.filter(d => d.m >= from && d.m <= to);
+    let sources = allSources;
+    if (cat !== 'all') sources = sources.filter(d => d.cat === cat);
+    if (src !== 'all') sources = sources.filter(d => d.src === src);
+
+    let totalLeads = 0, totalSigned = 0;
+    monthly.forEach(d => {
+      const incD = cat==='all'||cat==='Digital';
+      const incR = cat==='all'||cat==='Referral';
+      const incO = cat==='all'||cat==='Other';
+      totalLeads  += (incD?d.digital:0)+(incR?d.referral:0)+(incO?d.other:0);
+      totalSigned += (incD?d.signedD:0)+(incR?d.signedR:0)+(incO?d.signedO:0);
+    });
+    if (status==='signed') totalLeads = totalSigned;
+    const signupRate = totalLeads>0 ? (totalSigned/totalLeads*100).toFixed(1) : 0;
+
+    $('kLeads').textContent      = totalLeads.toLocaleString();
+    $('kSigned').textContent     = totalSigned.toLocaleString();
+    $('kSignupRate').textContent = signupRate + '% signup rate';
+    $('kPeriod').textContent     = from + ' – ' + to;
+
+    const activeArr = [];
+    if (from!=='2024-01'||to!=='2026-04') activeArr.push(from+' – '+to);
+    if (cat!=='all') activeArr.push('Cat: '+cat);
+    if (status!=='all') activeArr.push('Status: '+status);
+    if (src!=='all') activeArr.push('Source: '+src);
+    $('activeFilters').textContent = activeArr.length ? 'Filters: '+activeArr.join(' · ') : '';
+
+    const refRate = 17.5, digRate = 5.8;
+    $('insightBox').innerHTML = `<strong>Key finding:</strong> Referral sources convert at <strong>${refRate}%</strong> avg vs ~${digRate}% for digital — yet digital drives the majority of lead volume. The ROI gap between channels is not visible in any single existing report.`;
+
+    const monthLabels = monthly.map(d => {
+      const [y,m] = d.m.split('-');
+      return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+" '"+y.slice(2);
+    });
+
+    if (monthlyChart) monthlyChart.destroy();
+    const showD = cat==='all'||cat==='Digital';
+    const showR = cat==='all'||cat==='Referral';
+    const showO = cat==='all'||cat==='Other';
+    const datasets = [];
+    if (showD) datasets.push({label:'Digital',  data:monthly.map(d=>status==='signed'?d.signedD:d.digital),  backgroundColor:'#93C5FD',stack:'s'});
+    if (showR) datasets.push({label:'Referral', data:monthly.map(d=>status==='signed'?d.signedR:d.referral), backgroundColor:'#0D9488',stack:'s'});
+    if (showO) datasets.push({label:'Other',    data:monthly.map(d=>status==='signed'?d.signedO:d.other),    backgroundColor:'#e2e8f0',stack:'s'});
+
+    monthlyChart = new Chart(document.getElementById('d2-monthlyChart'), {
+      type:'bar', data:{labels:monthLabels, datasets},
+      options:{
+        responsive:true,
+        plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},
+        scales:{
+          x:{stacked:true,grid:{display:false},ticks:{font:{size:9},maxRotation:45}},
+          y:{stacked:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10}}}
+        }
+      }
+    });
+
+    if (rateChart) rateChart.destroy();
+    const sorted = [...sources].sort((a,b)=>b.rate-a.rate);
+    const cColors = {Digital:'#2D6BE4',Referral:'#0D9488',Other:'#94A3B8',Unknown:'#e2e8f0'};
+    rateChart = new Chart(document.getElementById('d2-rateChart'), {
+      type:'bar',
+      data:{labels:sorted.map(d=>d.src), datasets:[{data:sorted.map(d=>d.rate),backgroundColor:sorted.map(d=>cColors[d.cat]),borderRadius:4}]},
+      options:{
+        indexAxis:'y', responsive:true,
+        plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.raw+'% signup rate'}}},
+        scales:{
+          x:{grid:{color:'#f0f4f8'},ticks:{font:{size:10},callback:v=>v+'%'},max:26},
+          y:{grid:{display:false},ticks:{font:{size:10}}}
+        }
+      }
+    });
+
+    const tbody = $('srcTable');
+    tbody.innerHTML = '';
+    sources.forEach(d => {
+      const pill = d.rate>=15?'pill-teal':d.rate>=8?'pill-amber':'pill-red';
+      const tag  = d.cat==='Referral'?'tag-referral':d.cat==='Digital'?'tag-digital':'tag-other';
+      const show = status==='signed'?d.signed:d.leads;
+      tbody.innerHTML += `<tr>
+        <td style="font-weight:500">${d.src}</td>
+        <td><span class="tag ${tag}">${d.cat}</span></td>
+        <td>${show.toLocaleString()}</td><td>${d.signed}</td>
+        <td><span class="pill ${pill}">${d.rate}%</span></td>
+      </tr>`;
+    });
+  }
+
+  function reset() {
+    $('monthFrom').value = '2024-01';
+    $('monthTo').value   = '2026-04';
+    $('catFilter').value   = 'all';
+    $('statusFilter').value = 'all';
+    $('srcFilter').value    = 'all';
+    render();
+  }
+
+  ['monthFrom','monthTo','catFilter','statusFilter','srcFilter'].forEach(id => {
+    document.getElementById('d2-'+id).addEventListener('change', render);
+  });
+
+  return { render, reset };
+})();
+</script>
+
+
+<!-- ═══════════════════════════════════════════════
+     DASHBOARD 3 — JS
+═══════════════════════════════════════════════ -->
+<script>
+dashboards.d3 = (function() {
+  const $ = id => document.getElementById('d3-' + id);
+
+  const rawData = [
+    {raw:"Organic Search / SEO",count:5547},
+    {raw:"Google Local Service Ads (LSA)",count:1724},
+    {raw:"Referral: External Attorney",count:1026},
+    {raw:"Website Call",count:813},
+    {raw:"Referral: Friend/Family",count:492},
+    {raw:"Former (Repeat) Client",count:456},
+    {raw:"Knows EP Attorney",count:289},
+    {raw:"Referral: Current / Past Client",count:249},
+    {raw:"Other",count:157},
+    {raw:"Walk In",count:128},
+    {raw:"Legal Directory",count:119},
+    {raw:"Direct Search (Not Organic)",count:110},
+    {raw:"Unknown",count:91},
+    {raw:"Billboard",count:66},
+    {raw:"Google Ads PPC",count:61},
+    {raw:"Referral: Professional Network",count:50},
+    {raw:"Paid Lead Gen Service",count:49},
+    {raw:"EP Team Member",count:39},
+    {raw:"Paid Social Media",count:24},
+    {raw:"AI Search",count:23},
+  ];
+
+  const allClean = [
+    {src:"Organic Search",          cat:"Digital",  count:5669, signed:340, rate:6.0},
+    {src:"Google LSA",              cat:"Digital",  count:1724, signed:96,  rate:5.6},
+    {src:"Other",                   cat:"Other",    count:1330, signed:44,  rate:3.3},
+    {src:"Referral: Ext. Attorney", cat:"Referral", count:1026, signed:233, rate:22.7},
+    {src:"Referral: Past Client",   cat:"Referral", count:705,  signed:99,  rate:14.0},
+    {src:"Referral: Friend/Family", cat:"Referral", count:492,  signed:65,  rate:13.2},
+    {src:"Referral: Knows Attorney",cat:"Referral", count:289,  signed:40,  rate:13.8},
+    {src:"Walk In",                 cat:"Other",    count:128,  signed:5,   rate:3.9},
+    {src:"Direct",                  cat:"Other",    count:119,  signed:1,   rate:0.8},
+    {src:"Unknown",                 cat:"Unknown",  count:73,   signed:0,   rate:0.0},
+    {src:"Billboard",               cat:"Other",    count:66,   signed:8,   rate:12.1},
+    {src:"Social Media",            cat:"Other",    count:31,   signed:1,   rate:3.2},
+  ];
+
+  const catColors = {Digital:'#93C5FD',Referral:'#0D9488',Other:'#94A3B8',Unknown:'#fca5a5'};
+  let rawChart, cleanChart, rateChart;
+
+  function render() {
+    const cat    = $('catFilter').value;
+    const minVol = +$('minVolume').value || 0;
+    const minRt  = +$('minRate').value || 0;
+    const sortBy = $('sortBy').value;
+
+    let filtered = allClean;
+    if (cat !== 'all') filtered = filtered.filter(d => d.cat === cat);
+    filtered = filtered.filter(d => d.count >= minVol && d.rate >= minRt);
+    filtered = [...filtered].sort((a,b) => b[sortBy] - a[sortBy]);
+
+    const totalFiltered = filtered.reduce((a,d)=>a+d.count,0);
+    const totalSigned   = filtered.reduce((a,d)=>a+d.signed,0);
+    const avgRate = totalFiltered>0 ? (totalSigned/totalFiltered*100).toFixed(1) : 0;
+    const totalAll   = allClean.reduce((a,d)=>a+d.count,0);
+    const knownAll   = allClean.filter(d=>d.cat!=='Unknown').reduce((a,d)=>a+d.count,0);
+    const coverage   = (knownAll/totalAll*100).toFixed(1);
+
+    $('kCoverage').textContent     = coverage + '%';
+    $('kVisible').textContent      = filtered.length;
+    $('kVisibleSub').textContent   = 'of ' + allClean.length + ' total sources';
+    $('kAvgRate').textContent      = avgRate + '%';
+    $('kTotalFiltered').textContent= totalFiltered.toLocaleString();
+
+    const activeArr = [];
+    if (cat!=='all') activeArr.push('Cat: '+cat);
+    if (minVol>0) activeArr.push('Min vol: '+minVol);
+    if (minRt>0)  activeArr.push('Min rate: '+minRt+'%');
+    if (sortBy!=='count') activeArr.push('Sort: '+sortBy);
+    $('activeFilters').textContent = activeArr.length ? 'Filters: '+activeArr.join(' · ') : '';
+
+    const topRef = filtered.find(d=>d.cat==='Referral');
+    const topDig = filtered.find(d=>d.cat==='Digital');
+    let txt = `<strong>Why this matters:</strong> Lead Docket has 20+ inconsistently named sources collapsed into ${allClean.length} clean categories. `;
+    if (topRef && topDig) txt += `Referral sources (best: <strong>${topRef.src} at ${topRef.rate}%</strong>) outperform digital (best: ${topDig.src} at ${topDig.rate}%) by ${(topRef.rate/topDig.rate).toFixed(1)}×.`;
+    $('insightBox').innerHTML = txt;
+
+    if (rawChart) rawChart.destroy();
+    rawChart = new Chart(document.getElementById('d3-rawChart'), {
+      type:'bar',
+      data:{
+        labels:rawData.map(d=>d.raw.length>26?d.raw.slice(0,26)+'…':d.raw),
+        datasets:[{data:rawData.map(d=>d.count),backgroundColor:'#c4b5fd',borderRadius:3}]
+      },
+      options:{
+        indexAxis:'y',responsive:true,
+        plugins:{legend:{display:false},tooltip:{callbacks:{title:items=>rawData[items[0].dataIndex].raw}}},
+        scales:{x:{grid:{color:'#f0f4f8'},ticks:{font:{size:9.5}}},y:{grid:{display:false},ticks:{font:{size:9}}}}
+      }
+    });
+
+    if (cleanChart) cleanChart.destroy();
+    cleanChart = new Chart(document.getElementById('d3-cleanChart'), {
+      type:'bar',
+      data:{labels:filtered.map(d=>d.src),datasets:[{data:filtered.map(d=>d.count),backgroundColor:filtered.map(d=>catColors[d.cat]),borderRadius:3}]},
+      options:{
+        indexAxis:'y',responsive:true,plugins:{legend:{display:false}},
+        scales:{x:{grid:{color:'#f0f4f8'},ticks:{font:{size:9.5}}},y:{grid:{display:false},ticks:{font:{size:9.5}}}}
+      }
+    });
+
+    if (rateChart) rateChart.destroy();
+    const byRate = [...filtered].sort((a,b)=>b.rate-a.rate);
+    rateChart = new Chart(document.getElementById('d3-rateChart'), {
+      type:'bar',
+      data:{
+        labels:byRate.map(d=>d.src),
+        datasets:[{data:byRate.map(d=>d.rate),backgroundColor:byRate.map(d=>d.rate>=13?'#0D9488':d.rate>=5?'#7C3AED':'#e2e8f0'),borderRadius:4}]
+      },
+      options:{
+        indexAxis:'y',responsive:true,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+'% signup rate'}}},
+        scales:{x:{grid:{color:'#f0f4f8'},ticks:{font:{size:9.5},callback:v=>v+'%'},max:26},y:{grid:{display:false},ticks:{font:{size:9.5}}}}
+      }
+    });
+
+    const tbody = $('cleanTable');
+    tbody.innerHTML = '';
+    if (!filtered.length) { tbody.innerHTML='<tr><td colspan="5" class="no-data">No sources match filters</td></tr>'; return; }
+    filtered.forEach(d => {
+      const pill = d.rate>=13?'pill-green':d.rate>=5?'pill-purple':d.rate>0?'pill-amber':'pill-gray';
+      const tag  = d.cat==='Referral'?'tag-referral':d.cat==='Digital'?'tag-digital':d.cat==='Unknown'?'tag-unknown':'tag-other';
+      tbody.innerHTML += `<tr>
+        <td style="font-weight:500">${d.src}</td>
+        <td><span class="tag ${tag}">${d.cat}</span></td>
+        <td>${d.count.toLocaleString()}</td><td>${d.signed}</td>
+        <td><span class="pill ${pill}">${d.rate}%</span></td>
+      </tr>`;
+    });
+  }
+
+  function reset() {
+    $('catFilter').value  = 'all';
+    $('minVolume').value  = 0;
+    $('minRate').value    = 0;
+    $('sortBy').value     = 'count';
+    render();
+  }
+
+  ['catFilter','minVolume','minRate','sortBy'].forEach(id => {
+    const el = document.getElementById('d3-'+id);
+    el.addEventListener('change', render);
+    el.addEventListener('input', render);
+  });
+
+  return { render, reset };
+})();
+</script>
+
+
+<!-- ═══════════════════════════════════════════════
+     DASHBOARD 4 — JS
+═══════════════════════════════════════════════ -->
+<script>
+dashboards.d4 = (function() {
+  const $ = id => document.getElementById('d4-' + id);
+
+  const categories = ['Compensation','Advertising','Medical Records','Rent','Technology','Court Reporter','Filing Fees','Meals & Ent.','Other'];
+  const catColors = {
+    'Compensation':'#BFDBFE','Advertising':'#FDE68A','Medical Records':'#99F6E4',
+    'Rent':'#DDD6FE','Technology':'#93C5FD','Court Reporter':'#6EE7B7',
+    'Filing Fees':'#FCD34D','Meals & Ent.':'#FCA5A5','Other':'#E2E8F0'
+  };
+
+  const base = {
+    'Compensation':   [122008,125301,522654,170045,125720,321745,142000,195000,188000,210000,135000,198000,
+                       145000,138000,520000,175000,130000,310000,148000,188000,195000,215000,140000,202000,
+                       150000,142000,540000,180000,135000,325000,155000,195000,200000,220000,145000,210000,
+                       155000,148000,560000,185000,140000,340000,162000,202000,208000,228000,150000,218000,
+                       160000,155000,570000],
+    'Advertising':    [34378,34309,51450,31548,16971,34146,32000,38000,35000,40000,28000,36000,
+                       35000,36000,52000,32000,18000,35000,33000,39000,36000,41000,29000,37000,
+                       36000,37000,53000,33000,19000,36000,34000,40000,37000,42000,30000,38000,
+                       37000,38000,54000,34000,20000,37000,35000,41000,38000,43000,31000,39000,
+                       38000,39000,55000],
+    'Medical Records':[5712,4684,20609,7546,5780,9972,6000,8000,7000,9000,6000,8000,
+                       6500,5000,21000,8000,6000,10000,6500,8500,7500,9500,6500,8500,
+                       7000,5500,22000,8500,6500,10500,7000,9000,8000,10000,7000,9000,
+                       7500,6000,23000,9000,7000,11000,7500,9500,8500,10500,7500,9500,
+                       8000,6500,24000],
+    'Rent':           Array(51).fill(0).map((_,i)=>i<4?13935:15585),
+    'Technology':     Array(51).fill(0).map((_,i)=>[500,500,2500,1000,500,500,800,1200,1000,1500,800,1200][i%12]+Math.floor(i/12)*300),
+    'Court Reporter': [580,311,3353,2390,2749,2291,1800,2500,2200,2800,1500,2100,
+                       1000,800,3500,2500,2900,2400,1900,2600,2300,2900,1600,2200,
+                       1050,850,3700,2600,3000,2500,2000,2700,2400,3000,1700,2300,
+                       1100,900,3900,2700,3100,2600,2100,2800,2500,3100,1800,2400,
+                       1150,950,4100],
+    'Filing Fees':    [200,1124,1395,1238,271,859,900,1200,800,1100,700,900,
+                       300,1200,1500,1300,300,900,950,1250,850,1150,750,950,
+                       320,1250,1550,1350,320,920,970,1280,870,1180,770,970,
+                       340,1300,1600,1400,340,940,990,1300,890,1200,790,990,
+                       360,1350,1650],
+    'Meals & Ent.':   [0,0,133,1015,1149,1044,900,800,700,1100,600,900,
+                       100,200,200,1100,1200,1100,950,850,750,1150,650,950,
+                       110,220,220,1150,1250,1150,1000,900,800,1200,700,1000,
+                       120,240,240,1200,1300,1200,1050,950,850,1250,750,1050,
+                       130,260,260],
+    'Other':          [39395,47050,37746,82723,54180,52000,45000,58000,48000,55000,42000,50000,
+                       42000,50000,40000,85000,57000,55000,48000,61000,51000,58000,45000,53000,
+                       44000,52000,42000,87000,59000,57000,50000,63000,53000,60000,47000,55000,
+                       46000,54000,44000,89000,61000,59000,52000,65000,55000,62000,49000,57000,
+                       48000,56000,46000],
+  };
+
+  const monthStrs = [];
+  for (let y=2022;y<=2026;y++) {
+    const maxM = y===2026?3:12;
+    for (let m=1;m<=maxM;m++) monthStrs.push(`${y}-${String(m).padStart(2,'0')}`);
+  }
+
+  const topAccts = [
+    {name:"Salaries",amt:5978287,cat:"Compensation"},
+    {name:"Advertising",amt:3900397,cat:"Advertising"},
+    {name:"Salaries - Legal",amt:3462140,cat:"Compensation"},
+    {name:"Salary - Staley",amt:2889121,cat:"Compensation"},
+    {name:"Salary - Leader",amt:2876447,cat:"Compensation"},
+    {name:"Salary - Creech",amt:2858645,cat:"Compensation"},
+    {name:"Salary - T. Pope",amt:2236391,cat:"Compensation"},
+    {name:"Salary - Benson",amt:2145966,cat:"Compensation"},
+    {name:"401(k) Match - Officers",amt:2075689,cat:"Compensation"},
+    {name:"Rent",amt:1706060,cat:"Rent"},
+    {name:"Salary - Johnson",amt:1647641,cat:"Compensation"},
+    {name:"Salaries - Assoc. Att.",amt:1519690,cat:"Compensation"},
+  ];
+
+  let mainChart, donutChart;
+
+  function render() {
+    const yearFrom   = +$('yearFrom').value;
+    const yearTo     = +$('yearTo').value;
+    const cat        = $('catFilter').value;
+    const viewMode   = $('viewMode').value;
+    const excludeComp= $('excludeComp').value === 'yes';
+
+    const filteredIdx = monthStrs.reduce((acc,m,i) => {
+      const y = +m.split('-')[0];
+      if (y>=yearFrom && y<=yearTo) acc.push(i);
+      return acc;
+    }, []);
+
+    const filteredMonths = filteredIdx.map(i=>monthStrs[i]);
+    const mlabels = filteredMonths.map(m => {
+      const [y,mo] = m.split('-');
+      const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+mo-1];
+      return mo==='01' ? mn+"'"+y.slice(2) : mn;
+    });
+
+    const activeArr = [];
+    if (yearFrom!==2022||yearTo!==2026) activeArr.push(`${yearFrom}–${yearTo}`);
+    if (cat!=='all') activeArr.push('Cat: '+cat);
+    if (excludeComp) activeArr.push('Excl. Compensation');
+    $('activeFilters').textContent = activeArr.length ? 'Filters: '+activeArr.join(' · ') : '';
+
+    let visibleCats = categories;
+    if (cat!=='all') visibleCats = [cat];
+    if (excludeComp) visibleCats = visibleCats.filter(c=>c!=='Compensation');
+
+    const totals = {};
+    visibleCats.forEach(c => { totals[c] = filteredIdx.reduce((a,i)=>a+(base[c]?.[i]||0),0); });
+    const grandTotal = Object.values(totals).reduce((a,v)=>a+v,0);
+    const compTotal  = filteredIdx.reduce((a,i)=>a+(base['Compensation']?.[i]||0),0);
+    const advTotal   = filteredIdx.reduce((a,i)=>a+(base['Advertising']?.[i]||0),0);
+    const medTotal   = filteredIdx.reduce((a,i)=>a+(base['Medical Records']?.[i]||0),0);
+
+    $('kTotal').textContent    = '$'+(grandTotal/1000000).toFixed(1)+'M';
+    $('kTotalSub').textContent = `${yearFrom}–${yearTo}`;
+    $('kComp').textContent     = '$'+(compTotal/1000000).toFixed(1)+'M';
+    $('kCompPct').textContent  = grandTotal>0?(compTotal/grandTotal*100).toFixed(1)+'% of total':'—';
+    $('kAdv').textContent      = '$'+(advTotal/1000000).toFixed(1)+'M';
+    $('kAdvPct').textContent   = grandTotal>0?(advTotal/grandTotal*100).toFixed(1)+'% of total':'—';
+    $('kMed').textContent      = '$'+(medTotal/1000).toFixed(0)+'K';
+    $('kMedPct').textContent   = grandTotal>0?(medTotal/grandTotal*100).toFixed(1)+'% of total':'—';
+    $('kAvgMonth').textContent = filteredIdx.length>0?'$'+(grandTotal/filteredIdx.length/1000).toFixed(0)+'K':'—';
+
+    $('insightBox').innerHTML = `<strong>Key finding:</strong> Advertising is the firm's #2 expense at <strong>$${(advTotal/1000000).toFixed(2)}M</strong> (${(advTotal/grandTotal*100).toFixed(1)}%) in the selected period — yet there is no dashboard connecting this spend to signed cases or fees collected.`;
+
+    if (mainChart) mainChart.destroy();
+    const chartType = viewMode==='line'?'line':'bar';
+    let datasets;
+    if (viewMode==='category' && cat!=='all') {
+      datasets = [{label:cat, data:filteredIdx.map(i=>base[cat]?.[i]||0),
+        backgroundColor:catColors[cat]||'#94A3B8', borderColor:catColors[cat]||'#94A3B8',
+        fill:true, tension:0.3, borderRadius:3}];
+    } else {
+      datasets = visibleCats.map(c => ({
+        label:c, data:filteredIdx.map(i=>base[c]?.[i]||0),
+        backgroundColor:catColors[c]||'#E2E8F0', borderColor:catColors[c]||'#E2E8F0',
+        stack:viewMode==='line'?undefined:'s',
+        fill:viewMode==='line'?false:undefined,
+        tension:0.3, borderRadius:viewMode==='line'?0:3,
+        pointRadius:viewMode==='line'?2:0,
+      }));
+    }
+
+    $('mainChartTitle').textContent =
+      viewMode==='line'?'Monthly Expense Trend by Category':
+      (viewMode==='category'&&cat!=='all')?`Monthly: ${cat}`:'Monthly Expenses by Category (Stacked)';
+
+    mainChart = new Chart(document.getElementById('d4-mainChart'), {
+      type:chartType, data:{labels:mlabels,datasets},
+      options:{
+        responsive:true,
+        plugins:{legend:{position:'top',labels:{font:{size:10},boxWidth:10}}},
+        scales:{
+          x:{stacked:viewMode==='stacked',grid:{display:false},ticks:{font:{size:9},maxRotation:45,autoSkip:true,maxTicksLimit:30}},
+          y:{stacked:viewMode==='stacked',grid:{color:'#f0f4f8'},ticks:{font:{size:10},callback:v=>'$'+(v/1000).toFixed(0)+'K'}}
+        }
+      }
+    });
+
+    if (donutChart) donutChart.destroy();
+    const donutData = visibleCats.map(c=>({label:c,val:totals[c]||0,color:catColors[c]||'#E2E8F0'})).filter(d=>d.val>0);
+    donutChart = new Chart(document.getElementById('d4-donutChart'), {
+      type:'doughnut',
+      data:{labels:donutData.map(d=>d.label),datasets:[{data:donutData.map(d=>d.val),backgroundColor:donutData.map(d=>d.color),borderWidth:2,borderColor:'#fff'}]},
+      options:{cutout:'62%',responsive:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.label+': $'+(c.raw/1000000).toFixed(2)+'M'}}}}
+    });
+    const leg = $('donutLegend');
+    leg.innerHTML='';
+    donutData.slice(0,7).forEach(d=>{
+      leg.innerHTML+=`<div class="legend-item"><div class="legend-dot" style="background:${d.color}"></div>
+        <span style="flex:1;color:#4a5568;font-size:11px">${d.label}</span>
+        <span style="font-weight:700;font-size:11.5px">$${(d.val/1000).toFixed(0)}K</span></div>`;
+    });
+
+    const tbody = $('acctTable');
+    tbody.innerHTML='';
+    const filtAccts = cat!=='all'?topAccts.filter(a=>a.cat===cat):topAccts;
+    filtAccts.slice(0,10).forEach(a=>{
+      const pct=(a.amt/44175699*100).toFixed(1);
+      tbody.innerHTML+=`<tr>
+        <td style="font-weight:500">${a.name}</td>
+        <td style="font-weight:700">$${(a.amt/1000000).toFixed(2)}M</td>
+        <td><div style="display:flex;align-items:center;gap:5px;">
+          <div style="height:6px;width:${Math.min(+pct*4,100)}px;background:${catColors[a.cat]||'#94A3B8'};border-radius:3px;"></div>
+          <span style="font-size:10.5px;color:#718096">${pct}%</span>
+        </div></td>
+      </tr>`;
+    });
+  }
+
+  function reset() {
+    $('yearFrom').value    = '2022';
+    $('yearTo').value      = '2026';
+    $('catFilter').value   = 'all';
+    $('viewMode').value    = 'stacked';
+    $('excludeComp').value = 'no';
+    render();
+  }
+
+  ['yearFrom','yearTo','catFilter','viewMode','excludeComp'].forEach(id => {
+    document.getElementById('d4-'+id).addEventListener('change', render);
+  });
+
+  return { render, reset };
+})();
+</script>
+
+</body>
+</html>
