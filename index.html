@@ -36,8 +36,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; colo
   display: block;
 }
 .app-brand-text { line-height: 1.25; }
-.app-brand-text h1 { font-size: 13.5px; font-weight: 700; letter-spacing: -.2px; }
-.app-brand-text .sub { font-size: 9.5px; color: #475569; }
+.app-brand-text h1 { font-size: 15px; font-weight: 700; letter-spacing: -.2px; }
 .tab-nav { display: flex; align-items: stretch; flex: 1; padding: 0 6px; overflow-x: auto; }
 .tab-nav::-webkit-scrollbar { display: none; }
 .tab-btn {
@@ -59,6 +58,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; colo
 .app-meta { display: flex; align-items: center; gap: 6px; padding: 0 16px; color: #334155; font-size: 10.5px; border-left: 1px solid #1a2540; flex-shrink: 0; }
 .app-meta .chip { background: #1a2540; border-radius: 4px; padding: 2px 7px; font-size: 10px; color: #64748b; }
 
+.chart-subtitle { font-size: 10px; color: #94a3b8; font-weight: 400; margin-top: -6px; margin-bottom: 8px; letter-spacing: 0; text-transform: none; font-style: italic; }
 /* ── Panels ──────────────────────────────────────── */
 .panel { display: none; }
 .panel.active { display: block; }
@@ -204,8 +204,7 @@ tr:hover td { background: #f7fafc; }
   <div class="app-brand">
     <img src="data:image/jpeg;base64,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" class="app-logo" alt="Swyft" style="object-fit:cover;">
     <div class="app-brand-text">
-      <h1>PI Analytics Platform</h1>
-      <div class="sub">Swyft · Powered by Sigma</div>
+      <h1>Swyft</h1>
     </div>
   </div>
 
@@ -246,9 +245,9 @@ tr:hover td { background: #f7fafc; }
 
   <div class="filter-bar">
     <label>Date From</label>
-    <input type="date" id="d1-dateFrom" value="2025-12-07">
+    <input type="date" id="d1-dateFrom" value="2025-04-13">
     <label>Date To</label>
-    <input type="date" id="d1-dateTo" value="2026-04-12">
+    <input type="date" id="d1-dateTo" value="2026-04-13">
     <div class="filter-sep"></div>
     <label>Source</label>
     <select id="d1-sourceFilter">
@@ -294,14 +293,17 @@ tr:hover td { background: #f7fafc; }
   <div class="charts cols2">
     <div class="card chart-wide">
       <div class="card-title">Weekly Call Volume — Matched vs Unmatched</div>
+      <div class="chart-subtitle" id="d1-sub-weekly"></div>
       <canvas id="d1-weeklyChart" height="85"></canvas>
     </div>
     <div class="card">
       <div class="card-title">Matched vs Unmatched by Source</div>
+      <div class="chart-subtitle" id="d1-sub-source"></div>
       <canvas id="d1-sourceChart" height="200"></canvas>
     </div>
     <div class="card">
       <div class="card-title">Source Detail</div>
+        <div class="chart-subtitle" id="d1-sub-table"></div>
       <table>
         <thead><tr><th>Source</th><th>Calls</th><th>Matched</th><th>Match %</th><th>Missed</th></tr></thead>
         <tbody id="d1-sourceTable"></tbody>
@@ -326,7 +328,7 @@ tr:hover td { background: #f7fafc; }
 
   <div class="filter-bar">
     <label>Month From</label>
-    <input type="month" id="d2-monthFrom" value="2024-01">
+    <input type="month" id="d2-monthFrom" value="2025-04">
     <label>Month To</label>
     <input type="month" id="d2-monthTo" value="2026-04">
     <div class="filter-sep"></div>
@@ -374,14 +376,17 @@ tr:hover td { background: #f7fafc; }
   <div class="charts cols2">
     <div class="card chart-wide">
       <div class="card-title">Monthly Leads by Source Category</div>
+      <div class="chart-subtitle" id="d2-sub-monthly"></div>
       <canvas id="d2-monthlyChart" height="85"></canvas>
     </div>
     <div class="card">
       <div class="card-title">Signup Rate by Source</div>
+      <div class="chart-subtitle" id="d2-sub-rate"></div>
       <canvas id="d2-rateChart" height="200"></canvas>
     </div>
     <div class="card">
       <div class="card-title">Source Performance</div>
+      <div class="chart-subtitle" id="d2-sub-table"></div>
       <table>
         <thead><tr><th>Source</th><th>Category</th><th>Leads</th><th>Signed</th><th>Signup Rate</th></tr></thead>
         <tbody id="d2-srcTable"></tbody>
@@ -442,18 +447,22 @@ tr:hover td { background: #f7fafc; }
   <div class="charts cols2">
     <div class="card">
       <div class="card-title">Raw Source Values (Before Normalization)</div>
+      <div class="chart-subtitle" id="d3-sub-raw"></div>
       <canvas id="d3-rawChart" height="270"></canvas>
     </div>
     <div class="card">
       <div class="card-title">Clean Source Categories (After Normalization)</div>
+      <div class="chart-subtitle" id="d3-sub-clean"></div>
       <canvas id="d3-cleanChart" height="270"></canvas>
     </div>
     <div class="card">
       <div class="card-title">Signup Rate by Clean Source</div>
+      <div class="chart-subtitle" id="d3-sub-rate"></div>
       <canvas id="d3-rateChart" height="200"></canvas>
     </div>
     <div class="card">
       <div class="card-title">Clean Source Detail</div>
+      <div class="chart-subtitle" id="d3-sub-table"></div>
       <table>
         <thead><tr><th>Clean Source</th><th>Category</th><th>Leads</th><th>Signed</th><th>Signup Rate</th></tr></thead>
         <tbody id="d3-cleanTable"></tbody>
@@ -480,8 +489,8 @@ tr:hover td { background: #f7fafc; }
     <label>Year From</label>
     <select id="d4-yearFrom">
       <option value="2016">2016</option><option value="2018">2018</option>
-      <option value="2020">2020</option><option value="2022" selected>2022</option>
-      <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option>
+      <option value="2020">2020</option><option value="2022">2022</option>
+      <option value="2023">2023</option><option value="2024">2024</option><option value="2025" selected>2025</option>
     </select>
     <label>Year To</label>
     <select id="d4-yearTo">
@@ -532,10 +541,12 @@ tr:hover td { background: #f7fafc; }
   <div class="charts cols21">
     <div class="card chart-wide">
       <div class="card-title" id="d4-mainChartTitle">Monthly Expenses by Category</div>
+      <div class="chart-subtitle" id="d4-sub-main"></div>
       <canvas id="d4-mainChart" height="95"></canvas>
     </div>
     <div class="card">
       <div class="card-title">Expense Mix (Filtered Period)</div>
+      <div class="chart-subtitle" id="d4-sub-donut"></div>
       <div class="donut-wrap">
         <div style="position:relative;width:140px;height:140px;flex-shrink:0;">
           <canvas id="d4-donutChart" width="140" height="140"></canvas>
@@ -545,6 +556,7 @@ tr:hover td { background: #f7fafc; }
     </div>
     <div class="card">
       <div class="card-title">Top Expense Accounts</div>
+      <div class="chart-subtitle" id="d4-sub-table"></div>
       <table>
         <thead><tr><th>Account</th><th>Total</th><th>Share</th></tr></thead>
         <tbody id="d4-acctTable"></tbody>
@@ -592,6 +604,14 @@ window.addEventListener('load', () => {
 const dashboards = {};
 dashboards.d1 = (function() {
   const $ = id => document.getElementById('d1-' + id);
+
+  function fmtDate(iso) {
+    const [y,m] = iso.split('-');
+    return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1] + ' ' + y;
+  }
+  function smartSub(ids, text) {
+    ids.forEach(id => { const el = document.getElementById(id); if(el) el.textContent = text; });
+  }
 
   const allSourceData = [
     {src:"Google My Business",total:2484,matched:301,unmatched:2183,missed:25,match_rate:12.1},
@@ -666,6 +686,11 @@ dashboards.d1 = (function() {
     if (caller !== 'all') activeArr.push('Caller: ' + caller);
     $('activeFilters').textContent = activeArr.length ? 'Filters: ' + activeArr.join(' · ') : '';
 
+    const d1DateLabel = fmtDate(from) + ' – ' + fmtDate(to);
+    const d1SrcLabel  = src !== 'all' ? ' · Source: ' + src : '';
+    smartSub(['d1-sub-weekly'], d1DateLabel);
+    smartSub(['d1-sub-source', 'd1-sub-table'], d1DateLabel + d1SrcLabel);
+
     if (weeklyChart) weeklyChart.destroy();
     weeklyChart = new Chart(document.getElementById('d1-weeklyChart'), {
       type: 'bar',
@@ -728,8 +753,8 @@ dashboards.d1 = (function() {
   }
 
   function reset() {
-    $('dateFrom').value = '2025-12-07';
-    $('dateTo').value   = '2026-04-12';
+    $('dateFrom').value = '2025-04-13';
+    $('dateTo').value   = '2026-04-13';
     $('sourceFilter').value    = 'all';
     $('resultFilter').value    = 'all';
     $('newCallerFilter').value = 'all';
@@ -751,6 +776,14 @@ dashboards.d1 = (function() {
 <script>
 dashboards.d2 = (function() {
   const $ = id => document.getElementById('d2-' + id);
+
+  function fmtMon(ym) {
+    const [y,m] = ym.split('-');
+    return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1] + ' ' + y;
+  }
+  function smartSub(ids, text) {
+    ids.forEach(id => { const el = document.getElementById(id); if(el) el.textContent = text; });
+  }
 
   const allSources = [
     {src:"Organic Search",      cat:"Digital",  leads:5669, signed:340, rate:6.0},
@@ -835,6 +868,10 @@ dashboards.d2 = (function() {
     if (src!=='all') activeArr.push('Source: '+src);
     $('activeFilters').textContent = activeArr.length ? 'Filters: '+activeArr.join(' · ') : '';
 
+    const d2DateLabel = fmtMon(from) + ' – ' + fmtMon(to);
+    const d2CatLabel  = cat !== 'all' ? ' · ' + cat : '';
+    smartSub(['d2-sub-monthly', 'd2-sub-rate', 'd2-sub-table'], d2DateLabel + d2CatLabel);
+
     const refRate = 17.5, digRate = 5.8;
     $('insightBox').innerHTML = `<strong>Key finding:</strong> Referral sources convert at <strong>${refRate}%</strong> avg vs ~${digRate}% for digital — yet digital drives the majority of lead volume. The ROI gap between channels is not visible in any single existing report.`;
 
@@ -896,7 +933,7 @@ dashboards.d2 = (function() {
   }
 
   function reset() {
-    $('monthFrom').value = '2024-01';
+    $('monthFrom').value = '2025-04';
     $('monthTo').value   = '2026-04';
     $('catFilter').value   = 'all';
     $('statusFilter').value = 'all';
@@ -919,6 +956,10 @@ dashboards.d2 = (function() {
 <script>
 dashboards.d3 = (function() {
   const $ = id => document.getElementById('d3-' + id);
+
+  function smartSub(ids, text) {
+    ids.forEach(id => { const el = document.getElementById(id); if(el) el.textContent = text; });
+  }
 
   const rawData = [
     {raw:"Organic Search / SEO",count:5547},
@@ -991,6 +1032,14 @@ dashboards.d3 = (function() {
     if (minRt>0)  activeArr.push('Min rate: '+minRt+'%');
     if (sortBy!=='count') activeArr.push('Sort: '+sortBy);
     $('activeFilters').textContent = activeArr.length ? 'Filters: '+activeArr.join(' · ') : '';
+
+    const d3base  = 'All-time lead history';
+    const d3CatLbl = cat !== 'all' ? ' · Category: ' + cat : '';
+    const d3VolLbl = minVol > 0 ? ' · Min vol: ' + minVol : '';
+    const d3RtLbl  = minRt  > 0 ? ' · Min rate: ' + minRt + '%' : '';
+    const d3sub = d3base + d3CatLbl + d3VolLbl + d3RtLbl;
+    smartSub(['d3-sub-raw'], d3base);
+    smartSub(['d3-sub-clean','d3-sub-rate','d3-sub-table'], d3sub);
 
     const topRef = filtered.find(d=>d.cat==='Referral');
     const topDig = filtered.find(d=>d.cat==='Digital');
@@ -1077,6 +1126,10 @@ dashboards.d3 = (function() {
 <script>
 dashboards.d4 = (function() {
   const $ = id => document.getElementById('d4-' + id);
+
+  function smartSub(ids, text) {
+    ids.forEach(id => { const el = document.getElementById(id); if(el) el.textContent = text; });
+  }
 
   const categories = ['Compensation','Advertising','Medical Records','Rent','Technology','Court Reporter','Filing Fees','Meals & Ent.','Other'];
   const catColors = {
@@ -1174,6 +1227,12 @@ dashboards.d4 = (function() {
     if (excludeComp) activeArr.push('Excl. Compensation');
     $('activeFilters').textContent = activeArr.length ? 'Filters: '+activeArr.join(' · ') : '';
 
+    const d4DateLabel = yearFrom + ' – ' + yearTo;
+    const d4CatLabel  = cat !== 'all' ? ' · ' + cat : '';
+    const d4ExcLabel  = excludeComp ? ' · Excl. Compensation' : '';
+    const d4sub = d4DateLabel + d4CatLabel + d4ExcLabel;
+    smartSub(['d4-sub-main', 'd4-sub-donut', 'd4-sub-table'], d4sub);
+
     let visibleCats = categories;
     if (cat!=='all') visibleCats = [cat];
     if (excludeComp) visibleCats = visibleCats.filter(c=>c!=='Compensation');
@@ -1263,7 +1322,7 @@ dashboards.d4 = (function() {
   }
 
   function reset() {
-    $('yearFrom').value    = '2022';
+    $('yearFrom').value    = '2025';
     $('yearTo').value      = '2026';
     $('catFilter').value   = 'all';
     $('viewMode').value    = 'stacked';
