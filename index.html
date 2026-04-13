@@ -59,6 +59,28 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; colo
 .app-meta .chip { background: #1a2540; border-radius: 4px; padding: 2px 7px; font-size: 10px; color: #64748b; }
 
 .chart-subtitle { font-size: 10px; color: #94a3b8; font-weight: 400; margin-top: -6px; margin-bottom: 8px; letter-spacing: 0; text-transform: none; font-style: italic; }
+
+/* D5 – Emerald (Partner Overview) */
+.tab-btn.active.t5 { border-bottom-color: #10B981; }
+.p5 .filter-bar { background: #022c22; }
+.p5 .filter-bar label { color: #6ee7b7; }
+.p5 .filter-bar select, .p5 .filter-bar input { background: #011a15; color: white; border: 1px solid #065f46; }
+.p5 .filter-bar select:hover, .p5 .filter-bar input:hover { border-color: #10B981; }
+.p5 .filter-bar select option { background: #022c22; }
+.p5 .filter-sep { background: #065f46; }
+.p5 .filter-reset { color: #6ee7b7; border: 1px solid #065f46; }
+.p5 .filter-reset:hover { border-color: #10B981; color: white; }
+.p5 .active-filters { color: #34d399; }
+.p5 .badge { background: #10B981; }
+.p5 .insight { background: #ecfdf5; border-left: 4px solid #10B981; color: #065f46; }
+.kpi.emerald { border-top-color: #10B981; }
+.kpi-val.emerald { color: #059669; }
+.compare-bar { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-size:12px; }
+.compare-bar .bar-label { width:130px; flex-shrink:0; color:#4a5568; font-weight:500; }
+.compare-bar .bar-track { flex:1; background:#f0f4f8; border-radius:4px; height:12px; overflow:hidden; }
+.compare-bar .bar-fill { height:100%; border-radius:4px; transition:width .4s; }
+.compare-bar .bar-val { width:42px; text-align:right; flex-shrink:0; font-weight:700; font-size:12px; }
+
 /* ── Panels ──────────────────────────────────────── */
 .panel { display: none; }
 .panel.active { display: block; }
@@ -209,7 +231,10 @@ tr:hover td { background: #f7fafc; }
   </div>
 
   <nav class="tab-nav">
-    <button class="tab-btn t1 active" onclick="showTab(1)">
+    <button class="tab-btn t5 active" onclick="showTab(5)">
+      <span class="tab-icon">🤝</span> Partner Overview
+    </button>
+    <button class="tab-btn t1" onclick="showTab(1)">
       <span class="tab-icon">📞</span> Intake Leak Monitor
     </button>
     <button class="tab-btn t2" onclick="showTab(2)">
@@ -231,9 +256,81 @@ tr:hover td { background: #f7fafc; }
 
 
 <!-- ═══════════════════════════════════════════════
+     PANEL 5 — PARTNER OVERVIEW
+═══════════════════════════════════════════════ -->
+<div id="panel-5" class="panel p5 active">
+
+  <div class="dash-header">
+    <div>
+      <h2>🤝 Partner Overview</h2>
+      <div class="sub">Lead Docket + Filevine  ·  Referral Partner Performance vs. All Channels</div>
+    </div>
+    <span class="badge">Partner Overview</span>
+  </div>
+
+  <div class="filter-bar">
+    <label>Month From</label>
+    <input type="month" id="d5-monthFrom" value="2025-04">
+    <label>Month To</label>
+    <input type="month" id="d5-monthTo" value="2026-04">
+    <div class="filter-sep"></div>
+    <label>Partner Type</label>
+    <select id="d5-typeFilter">
+      <option value="all">All Partner Types</option>
+      <option value="Ext. Attorney">External Attorney</option>
+      <option value="Past Client">Past Client</option>
+      <option value="Friend / Family">Friend / Family</option>
+      <option value="Knows Attorney">Knows Attorney</option>
+    </select>
+    <button class="filter-reset" onclick="dashboards.d5.reset()">↺ Reset</button>
+    <span class="active-filters" id="d5-activeFilters"></span>
+  </div>
+
+  <div class="kpis kpi5">
+    <div class="kpi emerald"><div class="kpi-val emerald" id="d5-kPartnerLeads">—</div><div class="kpi-label">Partner Referrals</div><div class="kpi-sub" id="d5-kPeriod">—</div></div>
+    <div class="kpi good"><div class="kpi-val green" id="d5-kSigned">—</div><div class="kpi-label">Signed from Partners</div><div class="kpi-sub" id="d5-kSignedRate">—</div></div>
+    <div class="kpi blue"><div class="kpi-val" id="d5-kVsDigital">3.0×</div><div class="kpi-label">vs. Digital Conversion</div><div class="kpi-sub">Partners convert ~3× higher</div></div>
+    <div class="kpi amber"><div class="kpi-val" id="d5-kBestType">22.7%</div><div class="kpi-label">Best Partner Rate</div><div class="kpi-sub">Ext. Attorney Referral</div></div>
+    <div class="kpi"><div class="kpi-val" id="d5-kPartnerShare">—</div><div class="kpi-label">Partner Share of Signed</div><div class="kpi-sub">vs. all signed cases</div></div>
+  </div>
+
+  <div class="insight" id="d5-insightBox">Loading...</div>
+
+  <div class="charts cols2">
+    <div class="card chart-wide">
+      <div class="card-title">Monthly Partner Referrals by Type</div>
+      <div class="chart-subtitle" id="d5-sub-trend"></div>
+      <canvas id="d5-trendChart" height="85"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Conversion Rate by Partner Type</div>
+      <div class="chart-subtitle" id="d5-sub-rate"></div>
+      <canvas id="d5-rateChart" height="160"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Partner vs. All Channels — Lead Volume &amp; Conversion</div>
+      <div class="chart-subtitle" id="d5-sub-compare"></div>
+      <div style="margin-top:6px;" id="d5-compareViz"></div>
+    </div>
+    <div class="card chart-wide">
+      <div class="card-title">Partner Performance Detail</div>
+      <div class="chart-subtitle" id="d5-sub-table"></div>
+      <table>
+        <thead><tr>
+          <th>Partner Type</th><th>Referrals</th><th>Signed</th>
+          <th>Conv. Rate</th><th>vs. Digital</th><th>Est. Value</th>
+        </tr></thead>
+        <tbody id="d5-partnerTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- /panel-5 -->
+
+
+<!-- ═══════════════════════════════════════════════
      PANEL 1 — INTAKE LEAK MONITOR
 ═══════════════════════════════════════════════ -->
-<div id="panel-1" class="panel p1 active">
+<div id="panel-1" class="panel p1">
 
   <div class="dash-header">
     <div>
@@ -570,7 +667,7 @@ tr:hover td { background: #f7fafc; }
      TAB SWITCHING LOGIC
 ═══════════════════════════════════════════════ -->
 <script>
-const tabInited = { 1: false, 2: false, 3: false, 4: false };
+const tabInited = { 1: false, 2: false, 3: false, 4: false, 5: false };
 
 function showTab(num) {
   // Update panels
@@ -589,10 +686,10 @@ function showTab(num) {
   }
 }
 
-// Init tab 1 after full DOM ready
+// Init tab 5 (Partner Overview) after full DOM ready
 window.addEventListener('load', () => {
-  tabInited[1] = true;
-  dashboards.d1.render();
+  tabInited[5] = true;
+  dashboards.d5.render();
 });
 </script>
 
@@ -1332,6 +1429,247 @@ dashboards.d4 = (function() {
 
   ['yearFrom','yearTo','catFilter','viewMode','excludeComp'].forEach(id => {
     document.getElementById('d4-'+id).addEventListener('change', render);
+  });
+
+  return { render, reset };
+})();
+</script>
+
+
+
+<!-- ═══════════════════════════════════════════════
+     DASHBOARD 5 — PARTNER OVERVIEW JS
+═══════════════════════════════════════════════ -->
+<script>
+dashboards.d5 = (function() {
+  const $ = id => document.getElementById('d5-' + id);
+
+  function fmtMon(ym) {
+    const [y,m] = ym.split('-');
+    return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m-1]+' '+y;
+  }
+  function smartSub(ids, text) {
+    ids.forEach(id => { const el = document.getElementById(id); if(el) el.textContent = text; });
+  }
+
+  // ── All-time partner data ──────────────────────────────
+  const allPartners = [
+    { type:'Ext. Attorney',  leads:1026, signed:233, rate:22.7, color:'#10B981' },
+    { type:'Past Client',    leads:705,  signed:99,  rate:14.0, color:'#34d399' },
+    { type:'Friend / Family',leads:492,  signed:65,  rate:13.2, color:'#6ee7b7' },
+    { type:'Knows Attorney', leads:289,  signed:40,  rate:13.8, color:'#a7f3d0' },
+  ];
+
+  // Monthly breakdown by partner type (proportions: Ext=40.8%, Past=28.1%, F/F=19.6%, Knows=11.5%)
+  // Raw referral monthly totals from attribution data
+  const monthlyRaw = [
+    {m:'2024-01',ext:24,past:17,ff:12,knows:7},
+    {m:'2024-02',ext:16,past:11,ff:8,knows:5},
+    {m:'2024-03',ext:26,past:18,ff:12,knows:7},
+    {m:'2024-04',ext:17,past:12,ff:8,knows:4},
+    {m:'2024-05',ext:16,past:11,ff:8,knows:4},
+    {m:'2024-06',ext:15,past:10,ff:7,knows:4},
+    {m:'2024-07',ext:13,past:9, ff:6,knows:3},
+    {m:'2024-08',ext:15,past:10,ff:7,knows:4},
+    {m:'2024-09',ext:15,past:10,ff:7,knows:5},
+    {m:'2024-10',ext:13,past:9, ff:6,knows:5},
+    {m:'2024-11',ext:11,past:8, ff:5,knows:3},
+    {m:'2024-12',ext:12,past:8, ff:6,knows:3},
+    {m:'2025-01',ext:16,past:11,ff:8,knows:5},
+    {m:'2025-02',ext:38,past:26,ff:18,knows:11},
+    {m:'2025-03',ext:42,past:29,ff:20,knows:12},
+    {m:'2025-04',ext:24,past:17,ff:12,knows:7},
+    {m:'2025-05',ext:22,past:15,ff:11,knows:7},
+    {m:'2025-06',ext:15,past:10,ff:7,knows:4},
+    {m:'2025-07',ext:14,past:10,ff:7,knows:4},
+    {m:'2025-08',ext:19,past:13,ff:9,knows:5},
+    {m:'2025-09',ext:20,past:14,ff:10,knows:6},
+    {m:'2025-10',ext:29,past:20,ff:14,knows:9},
+    {m:'2025-11',ext:36,past:25,ff:17,knows:10},
+    {m:'2025-12',ext:27,past:18,ff:13,knows:7},
+    {m:'2026-01',ext:35,past:24,ff:17,knows:11},
+    {m:'2026-02',ext:33,past:23,ff:16,knows:9},
+    {m:'2026-03',ext:40,past:27,ff:19,knows:11},
+    {m:'2026-04',ext:18,past:12,ff:9,knows:5},
+  ];
+
+  // Channel comparison (all-time)
+  const channels = [
+    { name:'Ext. Attorney',  leads:1026, signed:233, rate:22.7, cat:'partner' },
+    { name:'Past Client',    leads:705,  signed:99,  rate:14.0, cat:'partner' },
+    { name:'Friend / Family',leads:492,  signed:65,  rate:13.2, cat:'partner' },
+    { name:'Knows Attorney', leads:289,  signed:40,  rate:13.8, cat:'partner' },
+    { name:'Organic Search', leads:5669, signed:340, rate:6.0,  cat:'digital' },
+    { name:'Google LSA',     leads:1724, signed:96,  rate:5.6,  cat:'digital' },
+    { name:'Billboard',      leads:66,   signed:8,   rate:12.1, cat:'other'   },
+    { name:'Walk In',        leads:128,  signed:5,   rate:3.9,  cat:'other'   },
+  ];
+
+  let trendChart, rateChart;
+
+  function render() {
+    const from = $('monthFrom').value;
+    const to   = $('monthTo').value;
+    const type = $('typeFilter').value;
+
+    const monthly = monthlyRaw.filter(d => d.m >= from && d.m <= to);
+
+    // Totals per selected type
+    let filteredPartners = type === 'all' ? allPartners : allPartners.filter(p => p.type === type);
+    const totalLeads  = filteredPartners.reduce((a,p)=>a+p.leads, 0);
+    const totalSigned = filteredPartners.reduce((a,p)=>a+p.signed, 0);
+    const convRate    = totalLeads > 0 ? (totalSigned/totalLeads*100).toFixed(1) : 0;
+
+    // All-signed (digital + partner + other) for share calc
+    const allSigned = 932; // total signed across all sources
+    const partnerShareAll = allPartners.reduce((a,p)=>a+p.signed,0);
+    const partnerShare = (partnerShareAll / allSigned * 100).toFixed(1);
+
+    // KPIs
+    $('kPartnerLeads').textContent = totalLeads.toLocaleString();
+    $('kSigned').textContent       = totalSigned.toLocaleString();
+    $('kSignedRate').textContent   = convRate + '% conversion rate';
+    $('kPeriod').textContent       = fmtMon(from) + ' – ' + fmtMon(to);
+    $('kPartnerShare').textContent = partnerShare + '%';
+
+    // Smart text
+    const dateLabel = fmtMon(from) + ' – ' + fmtMon(to);
+    const typeLabel = type !== 'all' ? ' · ' + type : '';
+    const subText = dateLabel + typeLabel;
+    smartSub(['d5-sub-trend','d5-sub-rate','d5-sub-compare','d5-sub-table'], subText);
+
+    // Active filters
+    const activeArr = [];
+    if (from !== '2025-04' || to !== '2026-04') activeArr.push(dateLabel);
+    if (type !== 'all') activeArr.push('Type: ' + type);
+    $('activeFilters').textContent = activeArr.length ? 'Filters: ' + activeArr.join(' · ') : '';
+
+    // Insight
+    const digitalRate = 5.8;
+    const mult = (convRate / digitalRate).toFixed(1);
+    $('insightBox').innerHTML = `<strong>🤝 Partner advantage:</strong> ${type === 'all' ? 'All referral partners' : type} convert at <strong>${convRate}%</strong> — ${mult}× higher than digital channels (${digitalRate}%). Partners represent ${(totalLeads/11652*100).toFixed(1)}% of lead volume but drive ${partnerShare}% of all signed cases.`;
+
+    // ── Monthly Trend Chart ──────────────────────────────
+    const labels = monthly.map(d => {
+      const [y,mo] = d.m.split('-');
+      return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+mo-1]+" '"+y.slice(2);
+    });
+
+    if (trendChart) trendChart.destroy();
+    const datasets = [];
+    if (type === 'all' || type === 'Ext. Attorney')
+      datasets.push({ label:'Ext. Attorney',   data:monthly.map(d=>d.ext),  backgroundColor:'#10B981', stack:'s' });
+    if (type === 'all' || type === 'Past Client')
+      datasets.push({ label:'Past Client',      data:monthly.map(d=>d.past), backgroundColor:'#34d399', stack:'s' });
+    if (type === 'all' || type === 'Friend / Family')
+      datasets.push({ label:'Friend / Family',  data:monthly.map(d=>d.ff),   backgroundColor:'#6ee7b7', stack:'s' });
+    if (type === 'all' || type === 'Knows Attorney')
+      datasets.push({ label:'Knows Attorney',   data:monthly.map(d=>d.knows),backgroundColor:'#a7f3d0', stack:'s' });
+
+    trendChart = new Chart(document.getElementById('d5-trendChart'), {
+      type:'bar', data:{labels, datasets},
+      options:{
+        responsive:true,
+        plugins:{ legend:{position:'top',labels:{font:{size:10},boxWidth:10}} },
+        scales:{
+          x:{stacked:true,grid:{display:false},ticks:{font:{size:9},maxRotation:45}},
+          y:{stacked:true,grid:{color:'#f0f4f8'},ticks:{font:{size:10}}}
+        }
+      }
+    });
+
+    // ── Rate Chart ───────────────────────────────────────
+    if (rateChart) rateChart.destroy();
+    const sortedP = [...filteredPartners].sort((a,b)=>b.rate-a.rate);
+    rateChart = new Chart(document.getElementById('d5-rateChart'), {
+      type:'bar',
+      data:{
+        labels:sortedP.map(p=>p.type),
+        datasets:[{
+          data:sortedP.map(p=>p.rate),
+          backgroundColor:sortedP.map(p=>p.color),
+          borderRadius:4
+        }]
+      },
+      options:{
+        indexAxis:'y', responsive:true,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:c=>c.raw+'% conversion rate'}},
+          annotation:{}
+        },
+        scales:{
+          x:{grid:{color:'#f0f4f8'},ticks:{font:{size:10},callback:v=>v+'%'},max:28,
+             title:{display:true,text:'Conversion Rate',font:{size:9}}},
+          y:{grid:{display:false},ticks:{font:{size:10}}}
+        }
+      }
+    });
+
+    // ── Compare Viz (custom HTML bars) ─────────────────────
+    const compareDiv = $('compareViz');
+    const allChannelsSorted = [...channels]
+      .filter(c => type === 'all' || c.cat !== 'partner' || c.name === type)
+      .sort((a,b) => b.rate - a.rate);
+
+    const maxRate = 25;
+    const catColor = { partner:'#10B981', digital:'#2D6BE4', other:'#94A3B8' };
+    const catLabel = { partner:'Partner', digital:'Digital', other:'Other' };
+
+    compareDiv.innerHTML = allChannelsSorted.map(c => `
+      <div class="compare-bar">
+        <div class="bar-label" title="${c.name}">${c.name.length > 16 ? c.name.slice(0,15)+'…' : c.name}
+          <span style="font-size:9px;color:#94a3b8;margin-left:4px;font-weight:400">${catLabel[c.cat]}</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${(c.rate/maxRate*100).toFixed(1)}%;background:${catColor[c.cat]}"></div>
+        </div>
+        <div class="bar-val" style="color:${catColor[c.cat]}">${c.rate}%</div>
+      </div>`).join('');
+
+    // ── Partner Table ────────────────────────────────────
+    const tbody = $('partnerTable');
+    tbody.innerHTML = '';
+    const digitalBase = 5.8;
+    filteredPartners.forEach(p => {
+      const mult = (p.rate / digitalBase).toFixed(1);
+      const estVal = (p.signed * 22000).toLocaleString();
+      const pillClass = p.rate >= 20 ? 'pill-green' : p.rate >= 13 ? 'pill-teal' : 'pill-amber';
+      tbody.innerHTML += `<tr>
+        <td style="font-weight:600">
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color};margin-right:6px;"></span>
+          ${p.type}
+        </td>
+        <td>${p.leads.toLocaleString()}</td>
+        <td style="font-weight:600">${p.signed}</td>
+        <td><span class="pill ${pillClass}">${p.rate}%</span></td>
+        <td style="color:#10B981;font-weight:700">${mult}×</td>
+        <td style="font-weight:600;color:#0f1f3d">~$${estVal}</td>
+      </tr>`;
+    });
+
+    // Totals row
+    const totMulti = (convRate / digitalBase).toFixed(1);
+    const totVal = (totalSigned * 22000).toLocaleString();
+    tbody.innerHTML += `<tr style="background:#f0fdf4;font-weight:700">
+      <td style="color:#065f46">All Partners</td>
+      <td>${totalLeads.toLocaleString()}</td>
+      <td style="color:#065f46">${totalSigned}</td>
+      <td><span class="pill pill-green">${convRate}%</span></td>
+      <td style="color:#10B981;font-weight:800">${totMulti}×</td>
+      <td style="color:#065f46">~$${totVal}</td>
+    </tr>`;
+  }
+
+  function reset() {
+    $('monthFrom').value   = '2025-04';
+    $('monthTo').value     = '2026-04';
+    $('typeFilter').value  = 'all';
+    render();
+  }
+
+  ['monthFrom','monthTo','typeFilter'].forEach(id => {
+    document.getElementById('d5-'+id).addEventListener('change', render);
   });
 
   return { render, reset };
